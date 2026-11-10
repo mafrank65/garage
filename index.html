@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Garage di famiglia</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9EEE7; --surface:#F7F9F5; --ink:#1F2D26; --muted:#5B6B62; --line:#C6D1C9;
+  --field:#FFFFFF; --eu:#1F3F9B; --signal:#E3A200; --danger:#B3261E; --ok:#2E6B3F;
+  --plate:#FFFFFF; --plate-ink:#121212;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141B17; --surface:#1C2520; --ink:#E4ECE6; --muted:#9BABA2; --line:#334139;
+    --field:#232E28; --eu:#3157C4; --signal:#F2B705; --danger:#F28B82; --ok:#7FCB92;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141B17; --surface:#1C2520; --ink:#E4ECE6; --muted:#9BABA2; --line:#334139;
+  --field:#232E28; --eu:#3157C4; --signal:#F2B705; --danger:#F28B82; --ok:#7FCB92;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 20px 48px}
+header h1{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:clamp(2.2rem,5vw,3.2rem);line-height:1;margin:0 0 6px;letter-spacing:.01em}
+header p{margin:0 0 28px;color:var(--muted);max-width:60ch}
+.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+
+/* form */
+form{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+.preview{display:flex;justify-content:center;padding:18px 0 22px;border-bottom:1px dashed var(--line);margin-bottom:20px}
+fieldset{border:0;padding:0;margin:0 0 22px}
+legend{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:600;font-size:1.25rem;padding:0;margin-bottom:10px}
+.type{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.type input{position:absolute;opacity:0;pointer-events:none}
+.type label{display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--line);border-radius:10px;cursor:pointer;font-weight:600;font-size:1.05rem;background:var(--field)}
+.type svg{width:40px;height:26px;flex:none}
+.type input:checked + label{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.type input:focus-visible + label{outline:3px solid var(--signal);outline-offset:2px}
+.row{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.row.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:520px){.row,.row.three{grid-template-columns:1fr}}
+.f{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.f label{font-size:.9rem;font-weight:500}
+.f small{color:var(--muted);font-size:.8rem}
+input[type=text],input[type=number],input[type=date]{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%;min-width:0}
+input:focus-visible{outline:3px solid var(--signal);outline-offset:1px;border-color:var(--ink)}
+input[aria-invalid="true"]{border-color:var(--danger)}
+.err{color:var(--danger);font-size:.82rem;min-height:0}
+#targa{text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-weight:600;border-radius:8px;padding:11px 18px;cursor:pointer;border:2px solid var(--ink)}
+button:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+.primary{background:var(--ink);color:var(--surface)}
+.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.status{font-size:.9rem;color:var(--ok)}
+.status.bad{color:var(--danger)}
+
+/* plate */
+.plate{display:inline-flex;align-items:stretch;background:var(--plate);color:var(--plate-ink);border:2px solid #1a1a1a;border-radius:6px;overflow:hidden;box-shadow:0 2px 0 rgba(0,0,0,.25);font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:600}
+.plate .eu{background:var(--eu);color:#fff;width:26px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:4px 0 3px;font-size:.8rem;font-weight:700;font-family:"Barlow",sans-serif}
+.plate .eu .stars{width:16px;height:16px;margin-bottom:auto;margin-top:2px}
+.plate .num{padding:2px 14px;display:flex;align-items:center;justify-content:center;letter-spacing:.06em;white-space:nowrap}
+.plate.auto .num{font-size:2.1rem;line-height:1.15;min-width:200px}
+.plate.moto{border-radius:8px}
+.plate.moto .num{flex-direction:column;font-size:1.7rem;line-height:1;padding:6px 14px;min-width:112px}
+.plate.auto .eu.r{justify-content:center}
+.plate.small.auto .num{font-size:1.45rem;min-width:140px;padding:1px 10px}
+.plate.small.moto .num{font-size:1.15rem;min-width:76px;padding:4px 10px}
+.plate.small .eu{width:20px;font-size:.65rem}
+.plate.small .eu .stars{width:12px;height:12px}
+.plate.empty{opacity:.55;border-style:dashed}
+
+/* list */
+.list h2{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:1.7rem;margin:0 0 4px}
+.list .sub{color:var(--muted);margin:0 0 16px;font-size:.95rem}
+.vehicles{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0;border-top:2px solid var(--ink)}
+.v{padding:16px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:auto 1fr;gap:6px 16px;align-items:start}
+.v .head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.v h3{margin:0;font-size:1.2rem;font-weight:600}
+.v .what{color:var(--muted);font-size:.92rem}
+.v dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:8px 0 0;font-size:.9rem}
+.v dt{color:var(--muted)}
+.v dd{margin:0}
+.v .del{padding:4px 10px;font-size:.82rem;border-width:1px;border-color:var(--line);background:transparent;color:var(--danger)}
+.owner{display:inline-block;font-size:.82rem;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid var(--line)}
+@media (max-width:520px){.v{grid-template-columns:1fr}}
+.empty-state{padding:28px 0;color:var(--muted);border-bottom:1px solid var(--line)}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.filters button{padding:4px 12px;font-size:.85rem;border-width:1px;border-color:var(--line);background:transparent;color:var(--ink);border-radius:999px}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+@media (prefers-reduced-motion:no-preference){
+  .v.new{animation:in .5s ease-out}
+  @keyframes in{from{background:color-mix(in srgb,var(--signal) 30%,transparent)}to{background:transparent}}
+}
+
+.setup{max-width:560px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+.setup h2{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:1.7rem;margin:0 0 6px}
+.setup p{margin:0 0 14px;color:var(--muted)}
+.sync{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;margin-top:18px;font-size:.9rem;color:var(--muted)}
+.sync button{padding:5px 12px;font-size:.85rem;border-width:1px;border-color:var(--line);background:transparent;color:var(--ink)}
+.sync .bad{color:var(--danger)}
+button[disabled]{opacity:.6;cursor:progress}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Garage di famiglia</h1>
+    <p>Le auto e le moto di casa, con i dati che servono per tenere d’occhio scadenze e tagliandi.</p>
+  </header>
+
+  <section class="setup" id="setup" hidden>
+    <h2>Collega il foglio Google</h2>
+    <p>Incolla l’indirizzo dell’app web del foglio (finisce con /exec). Lo fai una volta sola su questo dispositivo.</p>
+    <div class="f">
+      <label for="urlScript">Indirizzo dello script</label>
+      <input type="text" id="urlScript" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec">
+      <span class="err" id="e-urlScript"></span>
+    </div>
+    <div class="actions">
+      <button type="button" class="primary" id="collega">Collega</button>
+      <button type="button" class="ghost" id="annullaSetup" hidden>Annulla</button>
+    </div>
+  </section>
+
+  <div class="grid" id="app" hidden>
+    <form id="form" novalidate>
+      <div class="preview" aria-hidden="true" id="preview"></div>
+
+      <fieldset>
+        <legend>Tipo di veicolo</legend>
+        <div class="type">
+          <input type="radio" name="tipo" id="t-auto" value="auto" checked>
+          <label for="t-auto">
+            <svg viewBox="0 0 40 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 18v-4l4-1 5-6h13l6 6 5 1v4h-3"/><path d="M9 18H3M31 18H15"/><circle cx="12" cy="19" r="3"/><circle cx="31" cy="19" r="3"/></svg>
+            Auto
+          </label>
+          <input type="radio" name="tipo" id="t-moto" value="moto">
+          <label for="t-moto">
+            <svg viewBox="0 0 40 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><circle cx="8" cy="18" r="5"/><circle cx="32" cy="18" r="5"/><path d="M8 18l7-8h8l4 8M23 10l3-4h4M15 10h-4"/></svg>
+            Moto
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Il veicolo</legend>
+        <div class="f">
+          <label for="nome">Nome *</label>
+          <input type="text" id="nome" autocomplete="off" placeholder="Es. la Mini, lo scooter di papà">
+          <span class="err" id="e-nome"></span>
+        </div>
+        <div class="row three">
+          <div class="f"><label for="marca">Marca</label><input type="text" id="marca" autocomplete="off" placeholder="Es. Fiat"></div>
+          <div class="f"><label for="modello">Modello</label><input type="text" id="modello" autocomplete="off" placeholder="Es. 600"></div>
+          <div class="f"><label for="anno">Anno</label><input type="number" id="anno" inputmode="numeric" placeholder="Es. 2019" min="1900"><span class="err" id="e-anno"></span></div>
+        </div>
+        <div class="f">
+          <label for="targa">Targa</label>
+          <input type="text" id="targa" autocomplete="off" maxlength="10" placeholder="Es. AB123CD">
+          <span class="err" id="e-targa"></span>
+        </div>
+        <div class="f">
+          <label for="proprietario">Proprietario / guidatore</label>
+          <input type="text" id="proprietario" list="persone" autocomplete="off" placeholder="Es. Edoardo">
+          <datalist id="persone"></datalist>
+          <small>I nomi già usati compaiono come suggerimento.</small>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Date</legend>
+        <div class="row">
+          <div class="f"><label for="immatricolazione">Data di immatricolazione</label><input type="date" id="immatricolazione"><span class="err" id="e-immatricolazione"></span></div>
+          <div class="f"><label for="acquisto">Data di acquisto</label><input type="date" id="acquisto"><span class="err" id="e-acquisto"></span></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Chilometri</legend>
+        <div class="row three">
+          <div class="f"><label for="kmAcquisto">Km all’acquisto</label><input type="number" id="kmAcquisto" inputmode="numeric" min="0" placeholder="0"><span class="err" id="e-kmAcquisto"></span></div>
+          <div class="f"><label for="kmAttuali">Km di oggi</label><input type="number" id="kmAttuali" inputmode="numeric" min="0" placeholder="Es. 48200"><span class="err" id="e-kmAttuali"></span></div>
+          <div class="f"><label for="dataKm">Letti il</label><input type="date" id="dataKm"><span class="err" id="e-dataKm"></span></div>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" class="primary" id="aggiungi">Aggiungi veicolo</button>
+        <button type="button" class="ghost" id="reset">Svuota campi</button>
+        <span class="status" id="status" role="status"></span>
+      </div>
+    </form>
+
+    <section class="list" aria-labelledby="h-list">
+      <h2 id="h-list">In garage</h2>
+      <p class="sub" id="count"></p>
+      <div class="filters" id="filters"></div>
+      <ul class="vehicles" id="vehicles"></ul>
+      <div class="sync">
+        <span id="syncText" role="status"></span>
+        <button type="button" id="aggiorna">Aggiorna</button>
+        <button type="button" id="copiaLink">Copia link per la famiglia</button>
+        <button type="button" id="cambia">Cambia foglio</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  const K_URL = 'garage-famiglia:url';
+  const K_CACHE = 'garage-famiglia:cache';
+  const $ = id => document.getElementById(id);
+  const form = $('form');
+  let filtro = 'tutti';
+  let ultimoId = null;
+  let occupato = false;
+
+  // ---------- memoria locale (solo URL e copia di cortesia) ----------
+  const ls = {
+    get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+    set(k,v){ try { localStorage.setItem(k,v); } catch(e){} },
+    del(k){ try { localStorage.removeItem(k); } catch(e){} }
+  };
+  // Accetta anche gli indirizzi copiati dalla barra del browser (…/macros/u/1/s/…)
+  // e quelli degli account Google Workspace (…/a/macros/dominio.it/s/…)
+  const normalizza = u => String(u||'').trim()
+    .replace(/[?#].*$/, '')
+    .replace(/\/macros\/u\/\d+\/s\//, '/macros/s/');
+  const urlValido = u => /^https:\/\/script\.google\.com\/(a\/macros\/[^\/]+|macros)\/s\/[A-Za-z0-9_-]+\/exec$/.test(normalizza(u));
+
+  // Link per la famiglia: pagina#u=<indirizzo>. Lo salvo e pulisco la barra.
+  (function leggiHash(){
+    const m = location.hash.match(/^#u=(.+)$/);
+    if(!m) return;
+    try {
+      const u = normalizza(decodeURIComponent(m[1]));
+      if(urlValido(u)){ ls.set(K_URL, u); ls.del(K_CACHE); }
+    } catch(e){}
+    history.replaceState(null, '', location.pathname + location.search);
+  })();
+
+  let URL_SCRIPT = ls.get(K_URL);
+  let veicoli = (() => { try { const v = JSON.parse(ls.get(K_CACHE) || '[]'); return Array.isArray(v) ? v : []; } catch(e){ return []; } })();
+
+  // ---------- dialogo con il foglio ----------
+  async function chiama(body){
+    let timer;
+    const scadenza = new Promise((_, no) => { timer = setTimeout(() => no(new Error('tempo scaduto')), 25000); });
+    const richiesta = (async () => {
+      const res = body
+        ? await fetch(URL_SCRIPT, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body), redirect:'follow' })
+        : await fetch(URL_SCRIPT + '?t=' + Date.now(), { redirect:'follow' });
+      const data = await res.json();
+      if(!data.ok) throw new Error(data.errore || 'Risposta non valida dal foglio.');
+      return Array.isArray(data.veicoli) ? data.veicoli : [];
+    })();
+    try { return await Promise.race([richiesta, scadenza]); }
+    finally { clearTimeout(timer); }
+  }
+  function ricevi(lista){
+    veicoli = lista;
+    ls.set(K_CACHE, JSON.stringify(lista));
+    const ora = new Date().toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+    setSync(`Aggiornato alle ${ora}`);
+    render();
+  }
+  function setSync(testo, male){
+    const s = $('syncText'); s.textContent = testo; s.className = male ? 'bad' : '';
+  }
+  async function aggiorna(){
+    setSync('Carico il garage dal foglio…');
+    try { ricevi(await chiama()); }
+    catch(e){ setSync('Non riesco a leggere il foglio. Controlla la connessione e premi Aggiorna.', true); }
+  }
+
+  // ---------- utilità ----------
+  const oggi = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+  const fmtData = s => { if(!s) return '—'; const p = String(s).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : String(s); };
+  const fmtKm = n => (n === null || n === undefined || n === '') ? '—' : Number(n).toLocaleString('it-IT') + ' km';
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const pulisciTarga = s => String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  const haNumero = n => n !== null && n !== undefined && n !== '' && !isNaN(Number(n));
+
+  const STARS = '<svg class="stars" viewBox="0 0 16 16"><g fill="#F2C200">' +
+    Array.from({length:12},(_,i)=>{const a=i*Math.PI/6;return `<circle cx="${(8+6*Math.sin(a)).toFixed(2)}" cy="${(8-6*Math.cos(a)).toFixed(2)}" r="0.9"/>`}).join('') + '</g></svg>';
+
+  function targaHTML(tipo, targa, small){
+    tipo = tipo === 'moto' ? 'moto' : 'auto';
+    const t = pulisciTarga(targa);
+    const cls = `plate ${tipo}${small?' small':''}${t?'':' empty'}`;
+    let num;
+    if(!t){
+      num = tipo === 'moto' ? '<span>— —</span><span>— — —</span>' : 'SENZA TARGA';
+    } else if(tipo === 'auto'){
+      num = /^[A-Z]{2}\d{3}[A-Z]{2}$/.test(t) ? `${t.slice(0,2)} ${t.slice(2,5)} ${t.slice(5)}` : esc(t);
+    } else {
+      num = t.length > 3 ? `<span>${esc(t.slice(0,2))}</span><span>${esc(t.slice(2))}</span>` : `<span>${esc(t)}</span>`;
+    }
+    const right = tipo === 'auto' ? '<span class="eu r"></span>' : '';
+    return `<span class="${cls}"><span class="eu">${STARS}I</span><span class="num">${num}</span>${right}</span>`;
+  }
+
+  const tipoScelto = () => form.querySelector('input[name=tipo]:checked').value;
+  const aggiornaAnteprima = () => { $('preview').innerHTML = targaHTML(tipoScelto(), $('targa').value, false); };
+  const persone = () => [...new Set(veicoli.map(v => String(v.proprietario||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'it'));
+
+  // ---------- elenco ----------
+  function render(){
+    const nomi = persone();
+    $('persone').innerHTML = nomi.map(n => `<option value="${esc(n)}">`).join('');
+
+    const f = $('filters');
+    if(nomi.length > 1){
+      const opz = ['tutti', ...nomi];
+      if(!opz.includes(filtro)) filtro = 'tutti';
+      f.innerHTML = opz.map(o => `<button type="button" data-f="${esc(o)}" aria-pressed="${o===filtro}">${o==='tutti'?'Tutti':esc(o)}</button>`).join('');
+    } else { f.innerHTML = ''; filtro = 'tutti'; }
+
+    const lista = veicoli.filter(v => filtro === 'tutti' || String(v.proprietario||'').trim() === filtro);
+    const nAuto = veicoli.filter(v => v.tipo !== 'moto').length, nMoto = veicoli.length - nAuto;
+    $('count').textContent = veicoli.length ? `${nAuto} auto e ${nMoto} moto` : '';
+
+    const ul = $('vehicles');
+    if(!veicoli.length){
+      ul.innerHTML = '<li class="empty-state">Il garage è vuoto. Aggiungi il primo veicolo con il modulo.</li>';
+      return;
+    }
+    ul.innerHTML = lista.map(v => {
+      const cosa = [v.marca, v.modello, v.anno].filter(x => x !== null && x !== '').join(' ');
+      const percorsi = (haNumero(v.kmAcquisto) && haNumero(v.kmAttuali)) ? Number(v.kmAttuali) - Number(v.kmAcquisto) : null;
+      return `<li class="v${v.id===ultimoId?' new':''}">
+        <div>${targaHTML(v.tipo, v.targa, true)}</div>
+        <div>
+          <div class="head">
+            <h3>${esc(v.nome)}</h3>
+            <button type="button" class="del" data-del="${esc(v.id)}">Elimina</button>
+          </div>
+          <div class="what">${esc(cosa || (v.tipo==='moto'?'Moto':'Auto'))}${v.proprietario?` &nbsp;<span class="owner">${esc(v.proprietario)}</span>`:''}</div>
+          <dl>
+            <dt>Immatricolata</dt><dd>${fmtData(v.immatricolazione)}</dd>
+            <dt>Acquistata</dt><dd>${fmtData(v.acquisto)}${haNumero(v.kmAcquisto)?` a ${fmtKm(v.kmAcquisto)}`:''}</dd>
+            <dt>Km attuali</dt><dd>${fmtKm(v.kmAttuali)}${v.dataKm?` al ${fmtData(v.dataKm)}`:''}</dd>
+            ${percorsi!==null?`<dt>Percorsi da noi</dt><dd>${fmtKm(percorsi)}</dd>`:''}
+          </dl>
+        </div>
+      </li>`;
+    }).join('');
+  }
+
+  // ---------- validazione ----------
+  const CAMPI = ['nome','anno','targa','immatricolazione','acquisto','kmAcquisto','kmAttuali','dataKm'];
+  function setErr(id, msg){ $('e-'+id).textContent = msg || ''; $(id).setAttribute('aria-invalid', msg ? 'true' : 'false'); }
+  const num = id => { const v = $(id).value.trim(); return v === '' ? null : Number(v); };
+
+  function valida(){
+    CAMPI.forEach(i => setErr(i,''));
+    let ok = true; const fail = (id,m) => { setErr(id,m); ok = false; };
+    const today = oggi(), annoNow = new Date().getFullYear();
+    const d = { imm:$('immatricolazione').value, acq:$('acquisto').value, km:$('dataKm').value };
+
+    if(!$('nome').value.trim()) fail('nome','Dai un nome al veicolo, così lo riconosci nell’elenco.');
+    const anno = num('anno');
+    if(anno !== null && (!Number.isInteger(anno) || anno < 1900 || anno > annoNow + 1)) fail('anno',`Inserisci un anno tra 1900 e ${annoNow+1}.`);
+    if(anno !== null && d.imm && anno > Number(d.imm.slice(0,4)) + 1) fail('anno','L’anno è successivo all’immatricolazione.');
+
+    const t = pulisciTarga($('targa').value);
+    if(t && veicoli.some(v => pulisciTarga(v.targa) === t)) fail('targa','Questa targa è già in garage.');
+
+    if(d.imm && d.imm > today) fail('immatricolazione','La data è nel futuro.');
+    if(d.acq && d.acq > today) fail('acquisto','La data è nel futuro.');
+    if(d.imm && d.acq && d.acq < d.imm) fail('acquisto','L’acquisto non può precedere l’immatricolazione.');
+    if(d.km && d.km > today) fail('dataKm','La data è nel futuro.');
+    if(d.km && d.acq && d.km < d.acq) fail('dataKm','La lettura non può precedere l’acquisto.');
+
+    const ka = num('kmAcquisto'), kt = num('kmAttuali');
+    if(ka !== null && !(ka >= 0)) fail('kmAcquisto','Inserisci un numero di km valido.');
+    if(kt !== null && !(kt >= 0)) fail('kmAttuali','Inserisci un numero di km valido.');
+    if(ka !== null && kt !== null && kt < ka) fail('kmAttuali','I km di oggi sono meno di quelli all’acquisto.');
+    return ok;
+  }
+
+  function svuota(){
+    form.reset();
+    $('dataKm').value = oggi();
+    CAMPI.forEach(i => setErr(i,''));
+    aggiornaAnteprima();
+  }
+  function status(testo, male){ const s = $('status'); s.textContent = testo; s.className = 'status' + (male ? ' bad' : ''); }
+
+  // ---------- azioni ----------
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    if(occupato) return;
+    status('');
+    if(!valida()){
+      status('Controlla i campi segnati.', true);
+      const first = form.querySelector('[aria-invalid="true"]'); if(first) first.focus();
+      return;
+    }
+    const imm = $('immatricolazione').value;
+    const kt = num('kmAttuali');
+    const v = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      tipo: tipoScelto(),
+      nome: $('nome').value.trim(),
+      marca: $('marca').value.trim(),
+      modello: $('modello').value.trim(),
+      anno: num('anno') ?? (imm ? Number(imm.slice(0,4)) : null),
+      targa: pulisciTarga($('targa').value),
+      proprietario: $('proprietario').value.trim(),
+      immatricolazione: imm,
+      acquisto: $('acquisto').value,
+      kmAcquisto: num('kmAcquisto'),
+      kmAttuali: kt,
+      dataKm: kt !== null ? ($('dataKm').value || oggi()) : '',
+      inseritoIl: new Date().toISOString()
+    };
+    occupato = true; $('aggiungi').disabled = true; $('aggiungi').textContent = 'Salvo nel foglio…';
+    try {
+      const lista = await chiama({ azione:'aggiungi', veicolo:v });
+      ultimoId = v.id;
+      ricevi(lista);
+      status(`${v.nome} aggiunto al garage.`);
+      svuota();
+      $('nome').focus();
+    } catch(err){
+      status('Non sono riuscito a salvare nel foglio. I dati sono ancora nel modulo: controlla la connessione e riprova.', true);
+    } finally {
+      occupato = false; $('aggiungi').disabled = false; $('aggiungi').textContent = 'Aggiungi veicolo';
+    }
+  });
+
+  $('vehicles').addEventListener('click', async e => {
+    const b = e.target.closest('[data-del]'); if(!b || occupato) return;
+    const v = veicoli.find(x => String(x.id) === b.dataset.del); if(!v) return;
+    if(!confirm(`Eliminare ${v.nome} dal garage? Sparirà anche dal foglio.`)) return;
+    occupato = true; b.disabled = true; b.textContent = 'Elimino…';
+    try {
+      ultimoId = null;
+      ricevi(await chiama({ azione:'elimina', id:v.id }));
+      status(`${v.nome} eliminato.`);
+    } catch(err){
+      b.disabled = false; b.textContent = 'Elimina';
+      status('Non sono riuscito a eliminarlo dal foglio. Riprova tra poco.', true);
+    } finally { occupato = false; }
+  });
+
+  $('filters').addEventListener('click', e => {
+    const b = e.target.closest('[data-f]'); if(!b) return;
+    filtro = b.dataset.f; ultimoId = null; render();
+  });
+  $('reset').addEventListener('click', () => { svuota(); status(''); });
+  $('targa').addEventListener('input', aggiornaAnteprima);
+  form.querySelectorAll('input[name=tipo]').forEach(r => r.addEventListener('change', aggiornaAnteprima));
+  $('aggiorna').addEventListener('click', aggiorna);
+
+  $('copiaLink').addEventListener('click', async () => {
+    const link = location.origin + location.pathname + '#u=' + encodeURIComponent(URL_SCRIPT);
+    try { await navigator.clipboard.writeText(link); setSync('Link copiato: mandalo su WhatsApp ai tuoi familiari.'); }
+    catch(e){ prompt('Copia questo link e mandalo ai tuoi familiari:', link); }
+  });
+
+  // ---------- collegamento ----------
+  function mostraSetup(conAnnulla){
+    $('app').hidden = true; $('setup').hidden = false;
+    $('annullaSetup').hidden = !conAnnulla;
+    $('urlScript').value = conAnnulla ? (URL_SCRIPT || '') : '';
+    $('urlScript').focus();
+  }
+  function mostraApp(){
+    $('setup').hidden = true; $('app').hidden = false;
+    $('dataKm').value = oggi(); aggiornaAnteprima(); render(); aggiorna();
+  }
+  $('cambia').addEventListener('click', () => mostraSetup(true));
+  $('annullaSetup').addEventListener('click', () => { $('setup').hidden = true; $('app').hidden = false; });
+  $('collega').addEventListener('click', async () => {
+    const u = normalizza($('urlScript').value);
+    const err = $('e-urlScript');
+    if(!urlValido(u)){ err.textContent = 'L’indirizzo deve iniziare con https://script.google.com/macros/s/ e finire con /exec.'; return; }
+    err.textContent = 'Provo a leggere il foglio…';
+    const prima = URL_SCRIPT; URL_SCRIPT = u;
+    try {
+      const lista = await chiama();
+      ls.set(K_URL, u); err.textContent = '';
+      veicoli = lista; ls.set(K_CACHE, JSON.stringify(lista));
+      mostraApp();
+    } catch(e){
+      URL_SCRIPT = prima;
+      err.textContent = 'Il foglio non risponde (' + (e.message || 'errore di rete') + '). Controlla che “Chi ha accesso” sia “Chiunque” e non “Chiunque abbia un account Google”.';
+    }
+  });
+
+  if(urlValido(URL_SCRIPT)) mostraApp(); else mostraSetup(false);
+})();
+</script>
+</body>
+</html>
